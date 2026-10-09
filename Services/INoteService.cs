@@ -1,9 +1,12 @@
 namespace NotesApi.Services;
-using NotesApi.Model;
+using NotesApi.Dtos;
 
 public interface INoteService{
-    Note? AddNote(Note note);
-    List<Note> GetAllNotes();
-    Note? GetNoteById(int id);
-    bool DeleteNote(int id);
+    List<NoteResponseDto> GetAll(int? categoryId, string? search, bool includeArchived);
+    NoteResponseDto GetById(int id);
+    NoteResponseDto Create(CreateNoteDto dto);
+    NoteResponseDto Update(int id, UpdateNoteDto dto);
+    void Delete(int id);
+    NoteResponseDto Archive(int id);
+    NoteResponseDto Unarchive(int id);
 }
