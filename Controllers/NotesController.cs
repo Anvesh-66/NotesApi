@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using NotesApi.Model;
+using NotesApi.Dtos;
 using NotesApi.Services;
 
 namespace NotesApi.Controllers;
@@ -15,42 +15,40 @@ public NotesController(INoteService noteService)
 }
 
 [HttpGet]
-public IActionResult GetAll(){
-    return Ok(_noteService.GetAllNotes());
+[ProducesResponseType(typeof(List<NoteResponseDto>), StatusCodes.Status200OK)]
+public IActionResult GetAll([FromQuery] int? categoryId, [FromQuery] string? search, [FromQuery] bool includeArchived = false){
+    return Ok(_noteService.GetAll(categoryId, search, includeArchived));
 
 }
 [HttpGet("{id}")]
+[ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
 public IActionResult GetById(int id)
 {
-    var note = _noteService.GetNoteById(id);
-    if (note == null)
-    {
-        return NotFound();
-    }
-    return Ok(note);
+    return Ok(_noteService.GetById(id));
 }
 [HttpPost]
-public IActionResult Create(Note note)
+[ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status201Created)]
+[ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+public IActionResult Create(CreateNoteDto dto)
 {
-    if (string.IsNullOrWhiteSpace(note.Title))
-    {
-        return BadRequest("Title is required.");
-    }
-    var created = _noteService.AddNote(note);
-    if (created == null)
-    {
-        return BadRequest("Maximum number of notes reached.");
-    }
+    var created = _noteService.Create(dto);
     return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
 }
+[HttpPut("{id}")]
+[ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+[ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
+public IActionResult Update(int id, UpdateNoteDto dto)
+{
+    return Ok(_noteService.Update(id, dto));
+}
 [HttpDelete("{id}")]
+[ProducesResponseType(StatusCodes.Status204NoContent)]
+[ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
 public IActionResult Delete(int id)
 {
-    var deleted = _noteService.DeleteNote(id);
-    if (!deleted)
-    {
-        return NotFound();
-    }
+    _noteService.Delete(id);
     return NoContent();
 }
 }
